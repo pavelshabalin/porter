@@ -2,29 +2,23 @@ package authcore
 
 import (
 	"time"
-	"melissa/couchdbadapter"
 )
-
-var expireduration, _ = time.ParseDuration("2h")
-
 
 /*
 	Структура представляющая сессию пользователя
 	AccountId - id свфзанного пользователя
 */
-type Session struct  {
+type Session struct {
+	id        string
+	address   string
 	startTime time.Time
-	Profile interface{}
+	Profile   interface{}
 }
 
 /*
 	Return "true" if session expired.
  */
-func (s *Session)Expire()(bool) {
-	expireDate := time.Now().Add(expireduration);
+func (s *Session)Expire(expirationDuration time.Duration) (bool) {
+	expireDate := time.Now().Add(expirationDuration);
 	return s.startTime.After(expireDate);
-}
-
-func (s *Session)()  {
-
 }

@@ -1,46 +1,98 @@
 package authcore
 
 import (
-    "melissa/entities"
-    "code.google.com/p/go-uuid/uuid"
-    "strings"
-    "log"
-	"melissa/couchdbadapter"
+	"log"
+	"sync"
+	"go-auth/sid"
+	"time"
+	"errors"
 )
 
-var pool = make(map[string]*Session)
-
-func StartSession(entity couchdbadapter.DBEntity, ip string) (string) {
-    _uuid := newUuid(ip);
-    pool[_uuid]=entities.NewSession(entity, _uuid);
-	log.Println("Started new session with id: ", _uuid)
-    return _uuid;
+type SessionPool struct {
+	bySessionID        map[string]*Session
+	byAddress          map[string][]*Session
+	lock               sync.RWMutex
+	logger             func(string)
+	uniqueAddress      bool
+	expire             bool
+	expirationDuration time.Duration
 }
 
-func StopSession(id string) {
-	log.Println("Stop session with id: ", id);
-	delete(pool, id);
+/*
+	Default logging implementation.
+ */
+func defaultLogger(message string) {
+	log.Println(message)
 }
 
-func FindSession(id string) (*Session, bool) {
-	//TODO Добавить загрузку сессии из базы
-    return findOnlyPool(id);
+func (sp *SessionPool)StartSession(profile interface{}) (string) {
+	return sp.startSession(profile, "")
 }
 
-func newUuid(ip string) (string) {
-    return strings.Join([]string{uuid.New(), ip}, "@")
+func (sp *SessionPool)StartSessionForAddress(profile interface{}, address string) (sid string) {
+	return sp.startSession(profile, address)
 }
 
-func findOnlyPool(id string) (*Session, bool) {
-	session, ok := pool[id];
-	if (ok) {
-		if (session.Expire()) {
-			log.Printf("Found session but this expire")
-			StopSession(id);
-			return nil, false;
-		}
-		return session, true;
+func (sp *SessionPool) GetSession(sessionId string) (*Session, error) {
+	sp.lock.RLock()
+	session, ok := sp.bySessionID[sessionId]
+	sp.lock.RUnlock()
+	if !ok {
+		return nil, errors.New("Session not found.")
 	}
-	log.Printf("Not found session on cache")
-	return nil, false
+	if sp.expire && session.Expire(sp.expirationDuration) {
+		sp.removeSession(session)
+		return nil, errors.New("Session expired.")
+	}
+	return session, nil
+}
+func (sp * SessionPool)StopSession(sessionId string) {
+	sp.removeSessionById(sessionId)
+}
+
+func (sp *SessionPool)removeSessionById(sessionId string) {
+	sp.lock.RLock()
+	session, ok := sp.bySessionID[sessionId]
+	sp.lock.RUnlock()
+	if ok {
+		sp.removeSession(session)
+	}
+}
+func (sp *SessionPool)removeSession(session *Session) {
+	sessions := []*Session{}
+	if !sp.uniqueAddress {
+		sp.lock.RLock()
+		for _, s := range (sp.byAddress[session.address]) {
+			if s != session {
+				sessions = append(sessions, s)
+			}
+		}
+		sp.lock.RUnlock()
+	}
+	sp.lock.Lock()
+	defer sp.lock.Unlock()
+	sp.byAddress[session.address] = sessions
+	delete(sp.bySessionID, session.id)
+}
+
+func (sp *SessionPool)startSession(profile interface{}, address string) (sessionId string) {
+	sessionId = sid.NewToken()
+	session := &Session{
+		Profile:profile,
+		startTime:time.Now(),
+	}
+	sp.lock.Lock()
+	defer sp.lock.Unlock()
+	sessions, ok := sp.byAddress[address]
+	if ok && sp.uniqueAddress {
+		for _, s := range (sessions) {
+			delete(sp.bySessionID, s.id)
+		}
+		sessions = []*Session{session}
+	}else {
+		sessions = append(sessions, session)
+	}
+	sp.byAddress[address] = sessions
+	sp.bySessionID[sessionId] = session
+	return
 }
