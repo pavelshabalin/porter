@@ -1,12 +1,14 @@
-package authcore
+package auth
 
 import (
 	"log"
 	"sync"
-	"go-auth/sid"
+	"go-auth/auth/sid"
 	"time"
 	"errors"
 )
+
+//TODO Fixed status
 
 type SessionPool struct {
 	bySessionID        map[string]*Session
@@ -23,6 +25,21 @@ type SessionPool struct {
  */
 func defaultLogger(message string) {
 	log.Println(message)
+}
+
+func NewSessionPool(expire bool, uniqueAddress bool, expirationDuration time.Duration, logger func(string)) *SessionPool {
+	return &SessionPool{
+		byAddress:make(map[string][]*Session),
+		bySessionID:make(map[string]*Session),
+		logger:logger,
+		uniqueAddress:uniqueAddress,
+		expire:expire,
+		expirationDuration:expirationDuration,
+	}
+}
+
+func DefaultPool() *SessionPool {
+	return NewSessionPool(false, false, nil, defaultLogger);
 }
 
 func (sp *SessionPool)StartSession(profile interface{}) (string) {
@@ -46,10 +63,14 @@ func (sp *SessionPool) GetSession(sessionId string) (*Session, error) {
 	}
 	return session, nil
 }
-func (sp * SessionPool)StopSession(sessionId string) {
+
+func (sp *SessionPool)StopSession(sessionId string) {
 	sp.removeSessionById(sessionId)
 }
 
+/*
+	Remove session from sessions pool.
+ */
 func (sp *SessionPool)removeSessionById(sessionId string) {
 	sp.lock.RLock()
 	session, ok := sp.bySessionID[sessionId]
@@ -58,6 +79,10 @@ func (sp *SessionPool)removeSessionById(sessionId string) {
 		sp.removeSession(session)
 	}
 }
+
+/*
+	Find and remove session from.
+ */
 func (sp *SessionPool)removeSession(session *Session) {
 	sessions := []*Session{}
 	if !sp.uniqueAddress {

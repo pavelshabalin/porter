@@ -1,12 +1,11 @@
-package authcore
+package auth
 
 import (
 	"time"
 )
 
 /*
-	Структура представляющая сессию пользователя
-	AccountId - id свфзанного пользователя
+	Structure represent current session.
 */
 type Session struct {
 	id        string
