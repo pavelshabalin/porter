@@ -2,10 +2,10 @@ package sid
 
 import (
 	"crypto/rand"
-	"strconv"
-	"time"
 	"encoding/base64"
+	"strconv"
 	"strings"
+	"time"
 )
 
 var salt []byte
@@ -37,8 +37,8 @@ func generateTime() []byte {
 func addSalt(token, salt []byte) (stoken []byte) {
 	saltLength := len(salt)
 	stoken = make([]byte, len(token))
-	for i, b := range (token) {
-		if (i < saltLength) {
+	for i, b := range token {
+		if i < saltLength {
 			stoken[i] = b | salt[i]
 		} else {
 			stoken[i] = b
@@ -47,12 +47,11 @@ func addSalt(token, salt []byte) (stoken []byte) {
 	return
 }
 
-func generateToken() []byte  {
+func generateToken() []byte {
 	timet := addSalt(generateTime(), salt)
-	randomt := generateRandom((len(timet)*2)+1)
-	for i, b := range(timet){
+	randomt := generateRandom((len(timet) * 2) + 1)
+	for i, b := range timet {
 		randomt[i*2] = b
 	}
 	return randomt
 }
-

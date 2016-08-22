@@ -1,9 +1,9 @@
 package security
 
 import (
-	"testing"
 	"strconv"
 	"strings"
+	"testing"
 )
 
 const (
@@ -45,34 +45,32 @@ const (
 	FULL_PERM_32_STRING string = "11111111111111111111111111111111"
 )
 
-
 func TestPermissions(t *testing.T) {
-//	errStr := "Not added premission: %s"
-	perm := Permissions{};
-	perm.AddPermissions(ALL_PERMISSIONS);
-	if perm_s := strconv.FormatUint(uint64(ALL_PERMISSIONS), 2);  strings.Compare(perm_s, FULL_PERM_32_STRING) != 0 {
+	//	errStr := "Not added premission: %s"
+	perm := Permissions{}
+	perm.AddPermissions(ALL_PERMISSIONS)
+	if perm_s := strconv.FormatUint(uint64(ALL_PERMISSIONS), 2); strings.Compare(perm_s, FULL_PERM_32_STRING) != 0 {
 		t.Error("ALL_PERMISSIONS constant do't set all permission flag: " + perm_s)
 	}
 	perm.RemovePermissions(ALL_PERMISSIONS)
-	if perm.HasPermissions(TEST_PERM_1){
+	if perm.HasPermissions(TEST_PERM_1) {
 		t.Error("Dont remove all permmisions")
 	}
 
 	perm.AddPermissions(TEST_PERM_1)
-	if !perm.HasPermissions(TEST_PERM_1){
+	if !perm.HasPermissions(TEST_PERM_1) {
 		t.Error("Dont added permission")
 	}
 	perm.AddPermissions(TEST_PERM_2)
-	if !perm.HasPermissions(TEST_PERM_1){
+	if !perm.HasPermissions(TEST_PERM_1) {
 		t.Error("Dont added permission")
 	}
 	perm.AddPermissions(TEST_PERM_16)
-	if !perm.HasPermissions(TEST_PERM_1){
+	if !perm.HasPermissions(TEST_PERM_1) {
 		t.Error("Dont added permission")
 	}
 	perm.AddPermissions(TEST_PERM_31)
-	if !perm.HasPermissions(TEST_PERM_1){
+	if !perm.HasPermissions(TEST_PERM_1) {
 		t.Error("Dont added permission")
 	}
 }
-

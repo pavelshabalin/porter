@@ -8,7 +8,7 @@ import (
 	Structure represent current session.
 */
 type Session struct {
-	id        string
+	ID        string
 	address   string
 	startTime time.Time
 	Profile   interface{}
@@ -16,8 +16,8 @@ type Session struct {
 
 /*
 	Return "true" if session expired.
- */
-func (s *Session)Expire(expirationDuration time.Duration) (bool) {
-	expireDate := time.Now().Add(expirationDuration);
-	return s.startTime.After(expireDate);
+*/
+func (s *Session) Expire(expirationDuration time.Duration) bool {
+	expireDate := time.Now().Add(expirationDuration)
+	return s.startTime.After(expireDate)
 }

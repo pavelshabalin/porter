@@ -1,11 +1,10 @@
 package auth
 
 import (
-	"log"
-	"sync"
-	"go-auth/auth/sid"
-	"time"
 	"errors"
+	"go-auth/auth/sid"
+	"sync"
+	"time"
 )
 
 //TODO Fixed status
@@ -20,37 +19,26 @@ type SessionPool struct {
 	expirationDuration time.Duration
 }
 
-/*
-	Default logging implementation.
- */
-func defaultLogger(message string) {
-	log.Println(message)
-}
-
-func NewSessionPool(expire bool, uniqueAddress bool, expirationDuration time.Duration, logger func(string)) *SessionPool {
+func newSessionPool(expire bool, uniqueAddress bool, expirationDuration time.Duration, logger func(string)) *SessionPool {
 	return &SessionPool{
-		byAddress:make(map[string][]*Session),
-		bySessionID:make(map[string]*Session),
-		logger:logger,
-		uniqueAddress:uniqueAddress,
-		expire:expire,
-		expirationDuration:expirationDuration,
+		byAddress:          make(map[string][]*Session),
+		bySessionID:        make(map[string]*Session),
+		logger:             logger,
+		uniqueAddress:      uniqueAddress,
+		expire:             expire,
+		expirationDuration: expirationDuration,
 	}
 }
 
-func DefaultPool() *SessionPool {
-	return NewSessionPool(false, false, nil, defaultLogger);
+func (sp *SessionPool) startSession(profile interface{}) *Session {
+	return sp.newSession(profile, "")
 }
 
-func (sp *SessionPool)StartSession(profile interface{}) (string) {
-	return sp.startSession(profile, "")
+func (sp *SessionPool) startSessionForAddress(profile interface{}, address string) *Session {
+	return sp.newSession(profile, address)
 }
 
-func (sp *SessionPool)StartSessionForAddress(profile interface{}, address string) (sid string) {
-	return sp.startSession(profile, address)
-}
-
-func (sp *SessionPool) GetSession(sessionId string) (*Session, error) {
+func (sp *SessionPool) getSession(sessionId string) (*Session, error) {
 	sp.lock.RLock()
 	session, ok := sp.bySessionID[sessionId]
 	sp.lock.RUnlock()
@@ -64,14 +52,14 @@ func (sp *SessionPool) GetSession(sessionId string) (*Session, error) {
 	return session, nil
 }
 
-func (sp *SessionPool)StopSession(sessionId string) {
+func (sp *SessionPool) stopSession(sessionId string) {
 	sp.removeSessionById(sessionId)
 }
 
 /*
 	Remove session from sessions pool.
- */
-func (sp *SessionPool)removeSessionById(sessionId string) {
+*/
+func (sp *SessionPool) removeSessionById(sessionId string) {
 	sp.lock.RLock()
 	session, ok := sp.bySessionID[sessionId]
 	sp.lock.RUnlock()
@@ -82,12 +70,12 @@ func (sp *SessionPool)removeSessionById(sessionId string) {
 
 /*
 	Find and remove session from.
- */
-func (sp *SessionPool)removeSession(session *Session) {
+*/
+func (sp *SessionPool) removeSession(session *Session) {
 	sessions := []*Session{}
 	if !sp.uniqueAddress {
 		sp.lock.RLock()
-		for _, s := range (sp.byAddress[session.address]) {
+		for _, s := range sp.byAddress[session.address] {
 			if s != session {
 				sessions = append(sessions, s)
 			}
@@ -97,27 +85,32 @@ func (sp *SessionPool)removeSession(session *Session) {
 	sp.lock.Lock()
 	defer sp.lock.Unlock()
 	sp.byAddress[session.address] = sessions
-	delete(sp.bySessionID, session.id)
+	delete(sp.bySessionID, session.ID)
 }
 
-func (sp *SessionPool)startSession(profile interface{}, address string) (sessionId string) {
-	sessionId = sid.NewToken()
+func (sp *SessionPool) newSession(profile interface{}, address string) *Session {
+	sessionId := sid.NewToken()
 	session := &Session{
-		Profile:profile,
-		startTime:time.Now(),
+		ID: sessionId,
+		Profile:   profile,
+		startTime: time.Now(),
 	}
 	sp.lock.Lock()
 	defer sp.lock.Unlock()
 	sessions, ok := sp.byAddress[address]
 	if ok && sp.uniqueAddress {
-		for _, s := range (sessions) {
-			delete(sp.bySessionID, s.id)
+		for _, s := range sessions {
+			delete(sp.bySessionID, s.ID)
 		}
 		sessions = []*Session{session}
-	}else {
+	} else {
 		sessions = append(sessions, session)
 	}
 	sp.byAddress[address] = sessions
 	sp.bySessionID[sessionId] = session
-	return
+	return session
+}
+
+func (sp *SessionPool) setLogger(newLogger func(string)) {
+	sp.logger = newLogger
 }
