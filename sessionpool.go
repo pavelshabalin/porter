@@ -2,7 +2,7 @@ package auth
 
 import (
 	"errors"
-	"go-auth/auth/sid"
+	"go-auth/sid"
 	"sync"
 	"time"
 )
