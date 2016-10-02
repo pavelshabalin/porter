@@ -40,9 +40,13 @@ func AuthenticateByLogin(context interface{}) (*Session, error) {
 	if err != nil {
 		return nil, err
 	}
+	return AuthenticateByProfile(context, profile), nil
+}
+
+func AuthenticateByProfile(context interface{}, profile interface{}) (*Session) {
 	session := pool.startSession(profile)
 	configuration.UserAuthenticator.SuccessLoginHandler(context, session)
-	return session, nil
+	return session
 }
 
 func Authenticate(context interface{}) (*Session, error) {
