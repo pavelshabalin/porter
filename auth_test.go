@@ -1,8 +1,7 @@
-package auth
+package porter
 
 import (
 	"errors"
-	"go-auth/auth/security"
 	"testing"
 )
 
