@@ -2,75 +2,90 @@ package porter
 
 import (
 	"errors"
-	"log"
-	"time"
 )
 
-type Authenticator interface {
-	ExtractSessionData(context interface{}) (sid string, address string, ssid string)
-	LoginAuthentication(context interface{}) (interface{}, error)
-	SuccessLoginHandler(context interface{}, session *Session)
-}
-
-type AuthConfiguration struct {
-	Logger            func(string)
-	UserAuthenticator Authenticator
-}
-
-var pool *SessionPool
-
-var configuration AuthConfiguration
-
-func init() {
-	configuration = AuthConfiguration{
-		Logger: defaultLogger,
+func CreateNew(configuration *Configuration) *Security {
+	return &Security{
+		newSessionPool(configuration.getSessionConfiguration()),
+		configuration,
 	}
-	pool = newSessionPool(false, false, 1 * time.Hour, configuration.Logger)
+}
+
+type Security struct {
+	pool          *SessionPool
+	configuration *Configuration
 }
 
 /*
-	Default logging implementation.
+Creates a new session for the found Authentication Principal.
+Executes SuccessLoginHandler on successful session creation.
 */
-func defaultLogger(message string) {
-	log.Println(message)
-}
-
-func AuthenticateByLogin(context interface{}) (*Session, error) {
-	profile, err := configuration.UserAuthenticator.LoginAuthentication(context)
+func (s *Security) Login(context interface{}) (*Session, error) {
+	if s.configuration.LoginFilter == nil {
+		return nil, errors.New(LoginFilterNotImplemented)
+	}
+	principal, remote, err := s.configuration.LoginFilter(context)
 	if err != nil {
 		return nil, err
 	}
-	return AuthenticateByProfile(context, profile), nil
+	return s.login(context, principal, remote)
 }
 
-func AuthenticateByProfile(context interface{}, profile interface{}) (*Session) {
-	session := pool.startSession(profile)
-	configuration.UserAuthenticator.SuccessLoginHandler(context, session)
-	return session
-}
+/*
+Finds an existing session for the current context.
+Uses the AuthenticationFilter delegate to retrieve the session ID.
+*/
+func (s *Security) Authenticate(context interface{}) (*Session, error) {
 
-func Authenticate(context interface{}) (*Session, error) {
-	if configuration.UserAuthenticator == nil {
-		return nil, errors.New("No implements Authenticator.")
+	if s.configuration.AuthenticationFilter == nil {
+		return nil, errors.New(AuthenticationFilterNotImplemented)
 	}
-	sid, _, _ := configuration.UserAuthenticator.ExtractSessionData(context)
-	if len(sid) > 0 {
-		session, err := pool.getSession(sid)
-		if err != nil {
-			return nil, err
-		}
-		return session, nil
-	}
-	return nil,  errors.New("Can not authenticate")
+	return s.pool.getSession(s.configuration.AuthenticationFilter(context))
 }
 
-func EndSession(session *Session)  {
-	pool.removeSession(session)
+/**
+Stops the specified session.
+*/
+func (s *Security) EndSession(session *Session) {
+	s.pool.removeSession(session)
 }
 
-func SetAuthConfiguration(newConfiguration AuthConfiguration) {
-	configuration = newConfiguration
-	if configuration.Logger != nil {
-		pool.setLogger(configuration.Logger)
+/*
+Stops the current session for the current context.
+Uses the AuthenticationFilter delegate to retrieve the session ID.
+*/
+func (s *Security) EndCurrentSession(context interface{}) error {
+	return s.pool.removeSessionById(s.configuration.AuthenticationFilter(context))
+}
+
+/**
+Gets all sessions for the specified Authentication Principal.
+ */
+func (s *Security) GetAllSessions(principal AuthenticationPrincipal) []*Session {
+	return s.pool.getAllSessions(principal)
+}
+
+/*
+Gets all sessions for the current Authentication Principal.
+Uses the AuthenticationFilter delegate to retrieve the session ID.
+ */
+func (s *Security) GetAllSessionsForCurrent(context interface{}) ([]*Session, error) {
+	identifier := s.configuration.AuthenticationFilter(context)
+	session, err := s.pool.getSession(identifier)
+	if err != nil {
+		return nil, err
 	}
+	return s.pool.getAllSessions(session.Principal), err
+}
+
+func (s *Security) login(context interface{}, principal AuthenticationPrincipal, remote string) (*Session, error) {
+	if !principal.CanLogin() {
+		return nil, errors.New(CannotLoginPrincipal)
+	}
+	session, err := s.pool.startSession(principal, remote)
+	if err == nil {
+		return nil, err
+	}
+	s.configuration.SuccessLoginHandler(context, session)
+	return session, nil
 }

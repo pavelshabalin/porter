@@ -2,69 +2,63 @@ package porter
 
 import (
 	"errors"
-	"go-auth/sid"
 	"sync"
 	"time"
 )
 
-//TODO Fixed status
-
 type SessionPool struct {
-	bySessionID        map[string]*Session
-	byAddress          map[string][]*Session
-	lock               sync.RWMutex
-	logger             func(string)
-	uniqueAddress      bool
-	expire             bool
-	expirationDuration time.Duration
+	bySessionID   map[SessionIdentifier]*Session
+	byPrincipalId map[string]map[SessionIdentifier]*Session
+	lock          sync.RWMutex
+	configuration *sessionConfiguration
 }
 
-func newSessionPool(expire bool, uniqueAddress bool, expirationDuration time.Duration, logger func(string)) *SessionPool {
+func newSessionPool(configuration *sessionConfiguration) *SessionPool {
 	return &SessionPool{
-		byAddress:          make(map[string][]*Session),
-		bySessionID:        make(map[string]*Session),
-		logger:             logger,
-		uniqueAddress:      uniqueAddress,
-		expire:             expire,
-		expirationDuration: expirationDuration,
+		byPrincipalId: map[string]map[SessionIdentifier]*Session{},
+		bySessionID:   map[SessionIdentifier]*Session{},
+		configuration: configuration,
 	}
 }
 
-func (sp *SessionPool) startSession(profile interface{}) *Session {
-	return sp.newSession(profile, "")
+func (sp *SessionPool) startSession(principal AuthenticationPrincipal, remoteAddress string) (*Session, error) {
+	return sp.newSession(principal, remoteAddress)
 }
 
-func (sp *SessionPool) startSessionForAddress(profile interface{}, address string) *Session {
-	return sp.newSession(profile, address)
-}
-
-func (sp *SessionPool) getSession(sessionId string) (*Session, error) {
+func (sp *SessionPool) getSession(sessionId SessionIdentifier) (*Session, error) {
 	sp.lock.RLock()
 	session, ok := sp.bySessionID[sessionId]
 	sp.lock.RUnlock()
+
 	if !ok {
-		return nil, errors.New("Session not found.")
+		return nil, errors.New(SessionNotFound)
 	}
-	if sp.expire && session.Expire(sp.expirationDuration) {
+
+	if session.Expired(sp.configuration) {
 		sp.removeSession(session)
-		return nil, errors.New("Session expired.")
+		return nil, errors.New(SessionExpired)
 	}
+	session.Refresh()
 	return session, nil
 }
 
-func (sp *SessionPool) stopSession(sessionId string) {
-	sp.removeSessionById(sessionId)
+func (sp *SessionPool) stopSession(sessionId SessionIdentifier) error {
+	return sp.removeSessionById(sessionId)
 }
 
 /*
 	Remove session from sessions pool.
 */
-func (sp *SessionPool) removeSessionById(sessionId string) {
+func (sp *SessionPool) removeSessionById(sessionId SessionIdentifier) error {
 	sp.lock.RLock()
 	session, ok := sp.bySessionID[sessionId]
 	sp.lock.RUnlock()
 	if ok {
 		sp.removeSession(session)
+		return nil
+	} else {
+		sp.configuration.Logger.Printf("Session for ID: %s-%s-%s not found.", sessionId.SID, sessionId.SSID, sessionId.RemoteAddress)
+		return errors.New(SessionNotFound)
 	}
 }
 
@@ -72,45 +66,116 @@ func (sp *SessionPool) removeSessionById(sessionId string) {
 	Find and remove session from.
 */
 func (sp *SessionPool) removeSession(session *Session) {
-	sessions := []*Session{}
-	if !sp.uniqueAddress {
-		sp.lock.RLock()
-		for _, s := range sp.byAddress[session.address] {
-			if s != session {
-				sessions = append(sessions, s)
+	sp.lock.Lock()
+	defer sp.lock.Unlock()
+	sp.removeSessionUnsafe(session)
+}
+
+func (sp *SessionPool) newSession(principal AuthenticationPrincipal, address string) (*Session, error) {
+	session := sp.prepareNew(principal, address)
+	sp.lock.Lock()
+	defer sp.lock.Unlock()
+
+	sessions := sp.getSessions(principal)
+
+	if len(sessions) > 0 {
+		switch sp.configuration.MultiLogin {
+		case ExpireCurrent:
+			{
+				sp.removeAllUnsafe(sessions)
+			}
+		case FailNew:
+			{
+				sp.configuration.Logger.Printf("Session already started for this principal [%s].", principal.ID())
+				return nil, errors.New(SessionAlreadyStarted)
+			}
+		case AllowNew:
+			{
+				if !principal.AllowMultiLogin() {
+					sp.configuration.Logger.Printf("Session already started for this principal [%s].", principal.ID())
+					return nil, errors.New(SessionAlreadyStarted)
+				}
+			}
+		case AllowNewFromSameAddress:
+			{
+				if !principal.AllowMultiLogin() {
+					sp.configuration.Logger.Printf("Session already started for this principal [%s].", principal.ID())
+					return nil, errors.New(SessionAlreadyStarted)
+				} else {
+					forRemoving := []*Session{}
+					for _, s := range sessions {
+						if s.ID.RemoteAddress != address {
+							forRemoving = append(forRemoving, s)
+						}
+					}
+					sp.removeAllUnsafe(forRemoving)
+				}
 			}
 		}
-		sp.lock.RUnlock()
 	}
-	sp.lock.Lock()
-	defer sp.lock.Unlock()
-	sp.byAddress[session.address] = sessions
-	delete(sp.bySessionID, session.ID)
-}
 
-func (sp *SessionPool) newSession(profile interface{}, address string) *Session {
-	sessionId := sid.NewToken()
-	session := &Session{
-		ID: sessionId,
-		Profile:   profile,
-		startTime: time.Now(),
-	}
-	sp.lock.Lock()
-	defer sp.lock.Unlock()
-	sessions, ok := sp.byAddress[address]
-	if ok && sp.uniqueAddress {
-		for _, s := range sessions {
-			delete(sp.bySessionID, s.ID)
-		}
-		sessions = []*Session{session}
+	_ms, ok := sp.byPrincipalId[principal.ID()]
+	if !ok {
+		newMap := map[SessionIdentifier]*Session{}
+		newMap[session.ID] = session
+		sp.byPrincipalId[principal.ID()] = newMap
 	} else {
-		sessions = append(sessions, session)
+		_ms[session.ID] = session
 	}
-	sp.byAddress[address] = sessions
-	sp.bySessionID[sessionId] = session
-	return session
+	sp.bySessionID[session.ID] = session
+
+	return session, nil
 }
 
-func (sp *SessionPool) setLogger(newLogger func(string)) {
-	sp.logger = newLogger
+func (sp *SessionPool) prepareNew(principal AuthenticationPrincipal, address string) *Session {
+	return &Session{
+		ID: SessionIdentifier{
+			SID:           NewToken(),
+			SSID:          NewToken(),
+			RemoteAddress: address,
+		},
+		Principal:      principal,
+		startTime:      time.Now(),
+		refreshTime:    time.Now(),
+		expirationTime: time.Now().Add(sp.configuration.ExpirationDuration),
+		closed:         false,
+	}
+}
+
+func (sp *SessionPool) removeAll(sessions []*Session) {
+	for _, session := range sessions {
+		sp.removeSession(session)
+	}
+}
+
+func (sp *SessionPool) removeAllUnsafe(sessions []*Session) {
+	for _, session := range sessions {
+		sp.removeSessionUnsafe(session)
+	}
+}
+
+func (sp *SessionPool) removeSessionUnsafe(session *Session) {
+	delete(sp.bySessionID, session.ID)
+	sessions, ok := sp.byPrincipalId[session.Principal.ID()]
+	if ok {
+		delete(sessions, session.ID)
+		sp.configuration.Logger.Printf("Session removed: %s", session)
+	}
+}
+
+func (sp *SessionPool) getAllSessions(principal AuthenticationPrincipal) []*Session {
+	sp.lock.RLock()
+	defer sp.lock.RUnlock()
+
+	return sp.getSessions(principal)
+}
+
+func (sp *SessionPool) getSessions(principal AuthenticationPrincipal) []*Session {
+	sessions := []*Session{}
+	for _, session := range sp.bySessionID {
+		if session.Principal.ID() == principal.ID() {
+			sessions = append(sessions, session)
+		}
+	}
+	return sessions
 }
