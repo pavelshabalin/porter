@@ -10,16 +10,19 @@
         <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
         <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
       </path>
+    </expand>
+    <select>
       <path>
         <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
         <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
-        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:gitlab" type="e8cecc67:BranchNodeDescriptor" />
       </path>
-    </expand>
-    <select />
+    </select>
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3ab26800-9185-4bde-9e94-6b45eae5963b" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/porter.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/porter.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -37,6 +40,8 @@
   <component name="GOROOT" path="$USER_HOME$/go" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="HARD" />
+    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="ProjectId" id="1iTNZIedjnFoaN3yoCgkVyR2beo" />
   <component name="ProjectViewState">
@@ -56,6 +61,7 @@
     <property name="node.js.path.for.package.tslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
+    <property name="settings.editor.selected.configurable" value="goland.project.structure" />
   </component>
   <component name="RunManager" selected="Go Test.session_test.go">
     <configuration name="TestSessionPool_MultiCloseAll in porter" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -141,6 +147,10 @@
       <screen x="56" y="27" width="2504" height="1413" />
     </state>
     <state x="1055" y="300" width="495" height="873" key="#Code_Folding/56.27.2504.1413@56.27.2504.1413" timestamp="1601932046933" />
+    <state x="156" y="127" width="2304" height="1213" key="DiffContextDialog" timestamp="1602089963208">
+      <screen x="56" y="27" width="2504" height="1413" />
+    </state>
+    <state x="156" y="127" width="2304" height="1213" key="DiffContextDialog/56.27.2504.1413@56.27.2504.1413" timestamp="1602089963208" />
     <state width="2458" height="394" key="GridCell.Tab.0.bottom" timestamp="1602089039239">
       <screen x="56" y="27" width="2504" height="1413" />
     </state>
@@ -173,6 +183,10 @@
       <screen x="56" y="27" width="2504" height="1413" />
     </state>
     <state width="2458" height="484" key="GridCell.Tab.1.right/56.27.2504.1413@56.27.2504.1413" timestamp="1601949658146" />
+    <state x="789" y="368" width="1037" height="737" key="SettingsEditor" timestamp="1602089962856">
+      <screen x="56" y="27" width="2504" height="1413" />
+    </state>
+    <state x="789" y="368" width="1037" height="737" key="SettingsEditor/56.27.2504.1413@56.27.2504.1413" timestamp="1602089962856" />
     <state x="1064" y="566" width="478" height="342" key="com.goide.refactor.move.GoMoveDeclarationDialog" timestamp="1601943581536">
       <screen x="56" y="27" width="2504" height="1413" />
     </state>
@@ -181,6 +195,10 @@
       <screen x="56" y="27" width="2504" height="1413" />
     </state>
     <state x="914" y="347" width="778" height="780" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/56.27.2504.1413@56.27.2504.1413" timestamp="1601943789832" />
+    <state x="1081" y="647" width="453" height="179" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1602089879229">
+      <screen x="56" y="27" width="2504" height="1413" />
+    </state>
+    <state x="1081" y="647" width="453" height="179" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/56.27.2504.1413@56.27.2504.1413" timestamp="1602089879229" />
     <state x="987" y="458" width="641" height="550" key="find.popup" timestamp="1601943661959">
       <screen x="56" y="27" width="2504" height="1413" />
     </state>
