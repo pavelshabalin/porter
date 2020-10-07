@@ -20,16 +20,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3ab26800-9185-4bde-9e94-6b45eae5963b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/interfaces.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/session_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sessionpool_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/auth.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/permissions.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/permissions_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/security.go" beforeDir="false" afterPath="$PROJECT_DIR$/errors.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/session.go" beforeDir="false" afterPath="$PROJECT_DIR$/session.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sessionpool.go" beforeDir="false" afterPath="$PROJECT_DIR$/sessionpool.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,18 +57,7 @@
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
   </component>
-  <component name="RunManager" selected="Go Test.go test porter">
-    <configuration name="TestSessionPool_Multi in porter" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="porter" />
-      <working_directory value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <kind value="PACKAGE" />
-      <package value="porter" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <pattern value="^\QTestSessionPool_Multi\E$" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="Go Test.session_test.go">
     <configuration name="TestSessionPool_MultiCloseAll in porter" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="porter" />
       <working_directory value="$PROJECT_DIR$" />
@@ -121,13 +101,22 @@
       <filePath value="$PROJECT_DIR$" />
       <method v="2" />
     </configuration>
+    <configuration name="session_test.go" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="porter" />
+      <working_directory value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <kind value="FILE" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/session_test.go" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.session_test.go" />
         <item itemvalue="Go Test.go test porter" />
         <item itemvalue="Go Test.TestSessionPool_MultiCloseNotAllowed in porter" />
         <item itemvalue="Go Test.TestSessionPool_MultiCloseNotSame in porter" />
         <item itemvalue="Go Test.TestSessionPool_MultiCloseAll in porter" />
-        <item itemvalue="Go Test.TestSessionPool_Multi in porter" />
       </list>
     </recent_temporary>
   </component>
@@ -152,22 +141,22 @@
       <screen x="56" y="27" width="2504" height="1413" />
     </state>
     <state x="1055" y="300" width="495" height="873" key="#Code_Folding/56.27.2504.1413@56.27.2504.1413" timestamp="1601932046933" />
-    <state width="2458" height="484" key="GridCell.Tab.0.bottom" timestamp="1601949658143">
+    <state width="2458" height="394" key="GridCell.Tab.0.bottom" timestamp="1602089039239">
       <screen x="56" y="27" width="2504" height="1413" />
     </state>
-    <state width="2458" height="484" key="GridCell.Tab.0.bottom/56.27.2504.1413@56.27.2504.1413" timestamp="1601949658143" />
-    <state width="2458" height="484" key="GridCell.Tab.0.center" timestamp="1601949658141">
+    <state width="2458" height="394" key="GridCell.Tab.0.bottom/56.27.2504.1413@56.27.2504.1413" timestamp="1602089039239" />
+    <state width="2458" height="394" key="GridCell.Tab.0.center" timestamp="1602089039238">
       <screen x="56" y="27" width="2504" height="1413" />
     </state>
-    <state width="2458" height="484" key="GridCell.Tab.0.center/56.27.2504.1413@56.27.2504.1413" timestamp="1601949658141" />
-    <state width="2458" height="484" key="GridCell.Tab.0.left" timestamp="1601949658139">
+    <state width="2458" height="394" key="GridCell.Tab.0.center/56.27.2504.1413@56.27.2504.1413" timestamp="1602089039238" />
+    <state width="2458" height="394" key="GridCell.Tab.0.left" timestamp="1602089039237">
       <screen x="56" y="27" width="2504" height="1413" />
     </state>
-    <state width="2458" height="484" key="GridCell.Tab.0.left/56.27.2504.1413@56.27.2504.1413" timestamp="1601949658139" />
-    <state width="2458" height="484" key="GridCell.Tab.0.right" timestamp="1601949658142">
+    <state width="2458" height="394" key="GridCell.Tab.0.left/56.27.2504.1413@56.27.2504.1413" timestamp="1602089039237" />
+    <state width="2458" height="394" key="GridCell.Tab.0.right" timestamp="1602089039239">
       <screen x="56" y="27" width="2504" height="1413" />
     </state>
-    <state width="2458" height="484" key="GridCell.Tab.0.right/56.27.2504.1413@56.27.2504.1413" timestamp="1601949658141" />
+    <state width="2458" height="394" key="GridCell.Tab.0.right/56.27.2504.1413@56.27.2504.1413" timestamp="1602089039239" />
     <state width="2458" height="484" key="GridCell.Tab.1.bottom" timestamp="1601949658147">
       <screen x="56" y="27" width="2504" height="1413" />
     </state>
