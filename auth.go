@@ -60,7 +60,7 @@ func (s *Security) EndCurrentSession(context interface{}) error {
 
 /**
 Gets all sessions for the specified Authentication Principal.
- */
+*/
 func (s *Security) GetAllSessions(principal AuthenticationPrincipal) []*Session {
 	return s.pool.getAllSessions(principal)
 }
@@ -68,7 +68,7 @@ func (s *Security) GetAllSessions(principal AuthenticationPrincipal) []*Session 
 /*
 Gets all sessions for the current Authentication Principal.
 Uses the AuthenticationFilter delegate to retrieve the session ID.
- */
+*/
 func (s *Security) GetAllSessionsForCurrent(context interface{}) ([]*Session, error) {
 	identifier := s.configuration.AuthenticationFilter(context)
 	session, err := s.pool.getSession(identifier)
@@ -83,7 +83,7 @@ func (s *Security) login(context interface{}, principal AuthenticationPrincipal,
 		return nil, errors.New(CannotLoginPrincipal)
 	}
 	session, err := s.pool.startSession(principal, remote)
-	if err == nil {
+	if err != nil {
 		return nil, err
 	}
 	s.configuration.SuccessLoginHandler(context, session)
